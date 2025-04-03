@@ -1,0 +1,30 @@
+model User {
+  id               Int                @id @default(autoincrement())
+  email            String             @unique
+  firstName        String
+  lastName         String
+  password         String
+  confirm_password String
+  role             Role
+  isVerified       VerificationStatus @default(FALSE)
+  status           UserStatus         @default(ACTIVE)
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @updatedAt
+}
+
+enum UserStatus {
+  ACTIVE
+  DISACTIVE
+  BLOCKED
+}
+
+enum VerificationStatus {
+  VERIFIED
+  FALSE
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPERADMIN
+}

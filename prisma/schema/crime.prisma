@@ -1,0 +1,13 @@
+
+model Crime {
+  id              Int           @id @default(autoincrement()) 
+  title           String                                    
+  description     String?                                 
+  location        String                                    
+  reportedAt      DateTime                                  
+  categoryId      Int                                      
+  category        CrimeCategory @relation(fields: [categoryId], references: [id]) 
+  createdAt       DateTime       @default(now())         
+  updatedAt       DateTime       @updatedAt                
+
+}
