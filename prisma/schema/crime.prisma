@@ -5,7 +5,9 @@ model Crime {
   description     String?                                 
   location        String                                    
   reportedAt      DateTime                                  
-  categoryId      Int                                      
+  categoryId      Int 
+  userId          Int
+  reporter        User          @relation(fields: [userId], references: [id])                                     
   category        CrimeCategory @relation(fields: [categoryId], references: [id]) 
   createdAt       DateTime       @default(now())         
   updatedAt       DateTime       @updatedAt                
