@@ -1,14 +1,14 @@
-import app from "./app";
-import { prisma } from "./db/prismaClient";
+import app from './app';
+import { prisma } from './db/prismaClient';
 
 const PORT = 4000;
 
 async function checkDatabaseConnection() {
   try {
     await prisma.$connect();
-    console.log("✅ Database is connected!");
+    console.log('✅ Database is connected!');
   } catch (error) {
-    console.error("❌ Database connection failed:", error);
+    console.error('❌ Database connection failed:', error);
   }
 }
 

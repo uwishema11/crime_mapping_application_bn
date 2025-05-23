@@ -4,9 +4,14 @@ model User {
   firstName        String
   lastName         String
   password         String
-  phone_number     String
-  role             Role
+  phone_number     String?
+  gender          Gender?
+  city            String?
+  date_of_birth    DateTime?
+  image_url        String @default("https://www.creativefabrica.com/wp-content/uploads/2022/10/25/Person-icon-Graphics-43204353-1.jpg")
+  role             Role @default(USER)
   crimes           Crime[]
+  crimeCategories  CrimeCategory[]
   isVerified       VerificationStatus @default(FALSE)
   status           UserStatus         @default(ACTIVE)
   created_at       DateTime           @default(now())
@@ -28,4 +33,9 @@ enum Role {
   USER
   ADMIN
   SUPERADMIN
+}
+
+enum Gender {
+  MALE
+  FRMALE
 }

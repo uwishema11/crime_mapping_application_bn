@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 
-const isProduction = process.env.NODE_ENV === "production";
+const isProduction = process.env.NODE_ENV === 'production';
 export const prisma = new PrismaClient({
   datasourceUrl: isProduction
     ? process.env.DATABASE_URL_PROD
