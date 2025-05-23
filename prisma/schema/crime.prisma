@@ -2,7 +2,7 @@
 model Crime {
   id              Int           @id @default(autoincrement()) 
   title           String                                    
-  description     String?                                 
+  description     String                                 
   location        String                                    
   reportedAt      DateTime                                  
   categoryId      Int 

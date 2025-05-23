@@ -1,8 +1,17 @@
 model CrimeCategory {
-  id          Int      @id @default(autoincrement()) // Unique identifier
-  name        String   @unique                      // Name of the crime category (e.g., "Theft", "Assault")
-  description String?                              // Optional description of the category
-  createdAt   DateTime @default(now())             // Timestamp for when the category was created
-  updatedAt   DateTime @updatedAt                  // Timestamp for when the category was last updated
-  crimes      Crime[]                              // One-to-many relationship with the Crime model
+  id          Int      @id @default(autoincrement()) 
+  name        String   @unique                      
+  description String 
+  status      CrimeCategoryStatus @default(ACTIVE)
+  category_author      String
+  user        User     @relation(fields: [category_author], references: [email])                              
+  createdAt   DateTime @default(now())             
+  updatedAt   DateTime @updatedAt                  
+  crimes      Crime[]                              
+}
+
+enum CrimeCategoryStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
 }

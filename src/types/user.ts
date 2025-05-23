@@ -1,7 +1,8 @@
-export type Role = "ADMIN" | "USER" | "SUPERADMIN";
+// export type Role = "ADMIN" | "USER" | "SUPERADMIN";
 
-export type Status = "ACTIVE" | "DISACTIVE";
-export type verifiedUser = "VERIFIED" | "FALSE";
+// export type Status = "ACTIVE" | "DISACTIVE";
+// export type verifiedUser = "VERIFIED" | "FALSE";
+import { Gender, Role, UserStatus, VerificationStatus } from '@prisma/client';
 
 export interface userType {
   id: number;
@@ -11,9 +12,12 @@ export interface userType {
   confirm_password?: string;
   firstName: string;
   lastName: string;
-  isVerified: verifiedUser;
-  status: Status;
-  phone_number: string;
+  isVerified: VerificationStatus;
+  status: UserStatus;
+  image_url?: string;
+  phone_number?: string;
+  date_of_birth?: Date;
+  gender?: Gender;
   created_at: Date;
   updated_at: Date;
 }
