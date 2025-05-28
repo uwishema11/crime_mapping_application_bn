@@ -2,15 +2,14 @@ import { prisma } from '../db/prismaClient';
 import { CrimeCategoryType } from '../types/crime';
 
 export const createCrimeCategory = async (data: CrimeCategoryType) => {
-  const { crimes, ...categoryData } = data;
-  return await prisma.crimeCategory.create({
-    data: {
-      ...categoryData,
+  const categoryData = {
+    name: data.name,
+    description: data.description,
+    category_author: data.category_author,
+  };
 
-      crimes: {
-        create: crimes || [],
-      },
-    },
+  return await prisma.crimeCategory.create({
+    data: categoryData,
     include: {
       crimes: true,
     },
@@ -34,13 +33,21 @@ export const updateCrimeCategory = async (
   id: number,
   data: CrimeCategoryType
 ) => {
+  const existingCategory = await prisma.crimeCategory.findUnique({
+    where: { id },
+  });
+
+  if (!existingCategory) {
+    return null;
+  }
+
   return await prisma.crimeCategory.update({
     where: { id },
     data: {
       ...data,
       crimes: data.crimes
         ? {
-            set: data.crimes.map((crime) => ({ id: crime.id })),
+            set: data.crimes.map((crime) => ({ id: crime.crime_id })),
           }
         : undefined,
     },

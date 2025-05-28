@@ -29,7 +29,7 @@ interface AuthenticatedRequest extends Request {
 }
 
 export const registerUser = asyncHandler(async (req, res) => {
-  const { password, confirm_password, email } = req.body;
+  const { password, email } = req.body;
 
   const isUser = await findUserByEmail(email);
   if (isUser) {
@@ -210,7 +210,6 @@ export const updateUser = asyncHandler(async (req, res) => {
     ...req.body,
     image_url,
   };
-  console.log(data);
 
   const updatedUser = await updateUserData(Number(id), data);
   successResponse(res, updatedUser, 200, 'User updated successfully');

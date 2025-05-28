@@ -20,14 +20,13 @@ interface AuthenticatedRequest extends Request {
 
 export const createCrimeCategoryController = asyncHandler(
   async (req: AuthenticatedRequest, res) => {
-    const userId = req.user?.id;
     const category_author = req.user?.email;
 
     const category = {
       ...req.body,
-      userId: userId,
       category_author: category_author,
     };
+    console.log(category);
     const newCategory = await createCrimeCategory(category);
     successResponse(
       res,
@@ -41,7 +40,6 @@ export const createCrimeCategoryController = asyncHandler(
 export const getAllCrimeCategoriesController = asyncHandler(
   async (req, res) => {
     const categories = await getAllCrimeCategories();
-
     if (!categories) {
       return errorResponse(res, 'No crime categories found', 404);
     }
@@ -60,19 +58,20 @@ export const getAllCrimeCategoriesController = asyncHandler(
 export const updateCrimeCategoryController = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const category = await updateCrimeCategory(Number(id), req.body);
+  console.log(category);
 
   if (!category) {
-    res.status(404).json({
-      message: 'Crime category not found',
-    });
-    return;
+    return errorResponse(res, 'Crime category not found', 404);
   }
 
-  res.status(200).json({
-    message: 'Crime category updated successfully',
-    data: category,
-  });
+  return successResponse(
+    res,
+    category,
+    200,
+    'Crime category updated successfully'
+  );
 });
+
 export const deleteCrimeCategoryController = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const category = await deleteCrimeCategory(Number(id));

@@ -1,13 +1,10 @@
-
 model Crime {
   id              Int           @id @default(autoincrement()) 
-  title           String                                    
-  description     String                                 
-  location        String                                    
-  reportedAt      DateTime                                  
+  crime_name           String                                    
+  description     String                                                               
   categoryId      Int 
-  userId          Int
-  reporter        User          @relation(fields: [userId], references: [id])                                     
+  createdBy       Int         
+  creator         User          @relation(fields: [createdBy], references: [id])                                     
   category        CrimeCategory @relation(fields: [categoryId], references: [id]) 
   createdAt       DateTime       @default(now())         
   updatedAt       DateTime       @updatedAt                

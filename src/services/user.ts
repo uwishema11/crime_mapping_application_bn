@@ -51,19 +51,19 @@ export const fetchAllUsers = async (user: userParams) => {
           OR: [
             {
               firstName: {
-                contains: search.toLowerCase(),
+                contains: search,
                 mode: Prisma.QueryMode.insensitive,
               },
             },
             {
               lastName: {
-                contains: search.toLowerCase(),
+                contains: search,
                 mode: Prisma.QueryMode.insensitive,
               },
             },
             {
               email: {
-                contains: search.toLowerCase(),
+                contains: search,
                 mode: Prisma.QueryMode.insensitive,
               },
             },

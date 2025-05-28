@@ -1,17 +1,31 @@
 export interface CrimeType {
-  id: number;
-  title: string;
+  crime_id: number;
+  name: string;
   description: string;
-  location: string;
-  reportedAt: Date;
   categoryId: number;
-  userId: number;
+}
+
+export interface CrimeResponse extends CrimeType {
+  id: number;
+  createdBy: number;
+  createdAt: Date;
+  updatedAt: Date;
+  category?: {
+    id: number;
+    name: string;
+  };
 }
 
 export interface CrimeCategoryType {
-  id: number;
+  id?: number;
   name: string;
   description: string;
   category_author: string;
   crimes?: CrimeType[];
+}
+
+export interface CrimeCategoryResponse extends Omit<CrimeCategoryType, 'id'> {
+  id: number;
+  createdAt: Date;
+  updatedAt: Date;
 }

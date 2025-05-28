@@ -12,6 +12,7 @@ model User {
   role             Role @default(USER)
   crimes           Crime[]
   crimeCategories  CrimeCategory[]
+  reports          Report[]
   isVerified       VerificationStatus @default(FALSE)
   status           UserStatus         @default(ACTIVE)
   created_at       DateTime           @default(now())

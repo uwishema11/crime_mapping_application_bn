@@ -7,7 +7,8 @@ model CrimeCategory {
   user        User     @relation(fields: [category_author], references: [email])                              
   createdAt   DateTime @default(now())             
   updatedAt   DateTime @updatedAt                  
-  crimes      Crime[]                              
+  crimes      Crime[]
+  reports     Report[]                              
 }
 
 enum CrimeCategoryStatus {

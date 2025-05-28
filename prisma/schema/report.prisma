@@ -1,0 +1,25 @@
+model Report {
+  id              Int           @id @default(autoincrement())
+  crimeName      String       
+  description     String       
+  location        String       
+  incidentDate    DateTime  
+  reportedAt      DateTime     @default(now()) 
+  status          ReportStatus @default(PENDING)
+  evidence        String?     
+  contactNumber   String?      
+  categoryName    String
+  userId          Int
+  reporter        User         @relation(fields: [userId], references: [id])
+  category        CrimeCategory @relation(fields: [categoryName], references: [name])
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+enum ReportStatus {
+  PENDING
+  UNDER_REVIEW
+  INVESTIGATING
+  RESOLVED
+  REJECTED
+} 
