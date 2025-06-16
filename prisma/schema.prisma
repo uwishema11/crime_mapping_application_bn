@@ -1,0 +1,137 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id               Int                @id @default(autoincrement())
+  email            String             @unique
+  firstName        String
+  lastName         String
+  password         String
+  phone_number     String?
+  gender          Gender?
+  city            String?
+  date_of_birth    DateTime?
+  image_url        String @default("https://www.creativefabrica.com/wp-content/uploads/2022/10/25/Person-icon-Graphics-43204353-1.jpg")
+  role             Role @default(USER)
+  crimes           Crime[]
+  crimeCategories  CrimeCategory[]
+  reports          Report[]
+  assignedReports  Report[]          @relation("AssignedOfficer")
+  notifications    Notification[]
+  status           UserStatus         @default(ACTIVE)
+  created_at       DateTime           @default(now())
+  updated_at       DateTime           @updatedAt
+
+  @@index([email], map: "email_idx")
+}
+
+model Report {
+  id              Int           @id @default(autoincrement())
+  crimeName      String       
+  description     String       
+  location        String       
+  incidentDate    DateTime  
+  reportedAt      DateTime     @default(now()) 
+  status          ReportStatus @default(PENDING)
+  evidence        String?     
+  contactNumber   String?      
+  categoryName    String
+  userId          Int
+  assignedTo      Int?         // ID of the officer assigned to this report
+  reporter        User         @relation(fields: [userId], references: [id])
+  assignedOfficer User?        @relation("AssignedOfficer", fields: [assignedTo], references: [id])
+  category        CrimeCategory @relation(fields: [categoryName], references: [name])
+  notifications   Notification[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model CrimeCategory {
+  id          Int      @id @default(autoincrement()) 
+  name        String   @unique                      
+  description String 
+  status      CrimeCategoryStatus @default(ACTIVE)
+  category_author      String
+  user        User     @relation(fields: [category_author], references: [email])                              
+  createdAt   DateTime @default(now())             
+  updatedAt   DateTime @updatedAt                  
+  crimes      Crime[]
+  reports     Report[]                              
+}
+
+model Crime {
+  id              Int           @id @default(autoincrement()) 
+  crime_name           String                                    
+  description     String                                                               
+  categoryId      Int 
+  createdBy       Int 
+  incidentDate    DateTime?
+  location        String?        
+  creator         User          @relation(fields: [createdBy], references: [id])                                     
+  category        CrimeCategory @relation(fields: [categoryId], references: [id]) 
+  createdAt       DateTime       @default(now())         
+  updatedAt       DateTime       @updatedAt                
+}
+
+model Notification {
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  reportId    Int?
+  title       String
+  message     String
+  type        NotificationType
+  read        Boolean       @default(false)
+  user        User          @relation(fields: [userId], references: [id])
+  report      Report?       @relation(fields: [reportId], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([reportId])
+}
+
+
+enum NotificationType {
+  REPORT_SUBMITTED
+  REPORT_STATUS_CHANGED
+  REPORT_ASSIGNED
+  ADMIN_BROADCAST
+}
+
+enum CrimeCategoryStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum ReportStatus {
+  PENDING
+  UNDER_REVIEW
+  INVESTIGATING
+  RESOLVED
+  REJECTED
+} 
+
+enum UserStatus {
+  ACTIVE
+  DISACTIVE
+  BLOCKED
+}
+
+enum Role {
+  USER
+  OFFICER
+  ADMIN
+  SUPERADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}

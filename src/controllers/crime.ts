@@ -8,6 +8,10 @@ import {
   getCrimeById,
   updateCrime,
   getCrimesByCategory,
+  groupedCrimesByMonth,
+  groupedCrimesByMonthAndType,
+  groupCrimesByLocation,
+  groupCrimesByCrimeName,
 } from '../services/crime';
 
 interface AuthenticatedRequest extends Request {
@@ -100,3 +104,64 @@ export const getCrimesByCategoryController = asyncHandler(
     return successResponse(res, crimes, 200, 'Crimes retrieved successfully');
   }
 );
+
+export const fetchGroupedCrimesByMonth = asyncHandler(async (req, res) => {
+  const crimes = await groupedCrimesByMonth();
+
+  const isEmpty = !crimes || Object.keys(crimes).length === 0;
+
+  if (isEmpty) {
+    return errorResponse(res, 'No crimes found for any month', 404);
+  }
+
+  successResponse(res, crimes, 200, 'crimes retrieved successfully');
+});
+
+export const fetchGroupedCrimesByMonthAndType = asyncHandler(
+  async (req, res) => {
+    const grouped = await groupedCrimesByMonthAndType();
+    if (!grouped || Object.keys(grouped).length === 0) {
+      return errorResponse(res, 'No crimes found for any month', 404);
+    }
+    successResponse(
+      res,
+      grouped,
+      200,
+      'Crimes grouped by month and type retrieved successfully'
+    );
+  }
+);
+export const fetchGroupedCrimesByCrimeName = asyncHandler(async (req, res) => {
+  const grouped = await groupCrimesByCrimeName();
+  if (!grouped || Object.keys(grouped).length === 0) {
+    return errorResponse(res, 'No crimes found for any month', 404);
+  }
+  const formatted = grouped.map((item) => ({
+    crime_name: item.crime_name,
+    count: item._count.crime_name,
+  }));
+  successResponse(
+    res,
+    formatted,
+    200,
+    'Crimes grouped by crime_name retrieved successfully'
+  );
+});
+
+export const fetchGroupedCrimesByLocation = asyncHandler(async (req, res) => {
+  const grouped = await groupCrimesByLocation();
+  if (!grouped || Object.keys(grouped).length === 0) {
+    return errorResponse(res, 'No crimes found for This location', 404);
+  }
+
+  const formatted = grouped.map((item) => ({
+    location: item.location,
+    count: item._count.location,
+  }));
+  successResponse(
+    res,
+    formatted,
+    200,
+    'Crimes grouped by location retrieved successfully'
+  );
+});

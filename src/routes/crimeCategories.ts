@@ -16,7 +16,6 @@ crimeCategoryRouter.post(
   '/create',
   celebrate({ body: crimeCategoryValidation }),
   protectedRoute,
-  verifyAdmin,
   createCrimeCategoryController
 );
 crimeCategoryRouter.get(

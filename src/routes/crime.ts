@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticate } from '../middleware/auth';
+import protectedRoute from '../middleware/verifyAuth';
 import {
   createCrimeController,
   deleteCrimeController,
@@ -7,19 +7,24 @@ import {
   getCrimeByIdController,
   updateCrimeController,
   getCrimesByCategoryController,
+  fetchGroupedCrimesByMonthAndType,
+  fetchGroupedCrimesByMonth,
+  fetchGroupedCrimesByLocation,
+  fetchGroupedCrimesByCrimeName,
 } from '../controllers/crime';
 
-const router = express.Router();
+const Crimerouter = express.Router();
 
 // Public routes
-router.get('/', getAllCrimesController);
-router.get('/:id', getCrimeByIdController);
-router.get('/category/:categoryId', getCrimesByCategoryController);
+Crimerouter.get('/', getAllCrimesController);
+Crimerouter.get('/:id', getCrimeByIdController);
+Crimerouter.get('/category/:categoryId', getCrimesByCategoryController);
+Crimerouter.get('/grouped/monthly', fetchGroupedCrimesByMonth);
+Crimerouter.get('/grouped/location', fetchGroupedCrimesByLocation);
+Crimerouter.get('/grouped/crime-name', fetchGroupedCrimesByCrimeName);
+Crimerouter.get('/grouped/monthAndType', fetchGroupedCrimesByMonthAndType);
+Crimerouter.post('/', protectedRoute, createCrimeController);
+Crimerouter.put('/:id', protectedRoute, updateCrimeController);
+Crimerouter.delete('/:id', protectedRoute, deleteCrimeController);
 
-// Admin only routes
-router.use(authenticate);
-router.post('/', createCrimeController);
-router.put('/:id', updateCrimeController);
-router.delete('/:id', deleteCrimeController);
-
-export default router; 
+export default Crimerouter;

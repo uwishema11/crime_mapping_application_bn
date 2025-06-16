@@ -3,11 +3,14 @@ import { Request, Response } from 'express';
 import { ReportStatus } from '@prisma/client';
 import { successResponse, errorResponse } from '../helpers/response';
 import {
-  createReport,
+  createReportWithCrime,
   deleteReport,
   getAllReports,
   getReportById,
   getUserReports,
+  groupedReportsByMonth,
+  groupReportsByStatus,
+  recentReports,
   updateReport,
   updateReportStatus,
 } from '../services/report';
@@ -31,7 +34,7 @@ export const createReportController = asyncHandler(
       userId,
     };
 
-    const report = await createReport(reportData);
+    const report = await createReportWithCrime(reportData);
     return successResponse(
       res,
       report,
@@ -41,13 +44,12 @@ export const createReportController = asyncHandler(
   }
 );
 
-// Get all reports (admin only)
 export const getAllReportsController = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     if (req.user?.role !== 'ADMIN') {
       return errorResponse(res, 'Unauthorized access', 403);
     }
-    console.log(req.user?.role)
+    console.log(req.user?.role);
     const reports = await getAllReports();
     return successResponse(res, reports, 200, 'Reports retrieved successfully');
   }
@@ -57,7 +59,7 @@ export const getAllReportsController = asyncHandler(
 export const getUserReportsController = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user?.id;
-    console.log(req.user?.role)
+    console.log(req.user?.role);
     if (!userId) {
       return errorResponse(res, 'User not authenticated', 401);
     }
@@ -125,12 +127,11 @@ export const updateReportStatusController = asyncHandler(
   }
 );
 
-// Delete a report
 export const deleteReportController = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user?.id;
     const isAdmin = req.user?.role === 'ADMIN';
-    
+
     if (!userId) {
       return errorResponse(res, 'User not authenticated', 401);
     }
@@ -144,12 +145,7 @@ export const deleteReportController = asyncHandler(
         return errorResponse(res, 'Report not found', 404);
       }
 
-      return successResponse(
-        res,
-        null,
-        200,
-        'Report deleted successfully'
-      );
+      return successResponse(res, null, 200, 'Report deleted successfully');
     } catch (error: any) {
       if (error.message.includes('Unauthorized')) {
         return errorResponse(res, error.message, 403);
@@ -164,7 +160,7 @@ export const updateReportController = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user?.id;
     const isAdmin = req.user?.role === 'ADMIN';
-    
+
     if (!userId) {
       return errorResponse(res, 'User not authenticated', 401);
     }
@@ -198,3 +194,37 @@ export const updateReportController = asyncHandler(
     }
   }
 );
+
+export const fetctchGroupReportsByStatus = asyncHandler(async (req, res) => {
+  const reports = await groupReportsByStatus();
+  const formattedData = reports.map((report) => ({
+    status: report.status,
+    count: report._count.status,
+  }));
+  if (!reports) {
+    return errorResponse(res, 'No recent report found', 404);
+  }
+  successResponse(res, formattedData, 200, 'reports retrieved successfully');
+});
+
+export const fetchGroupedReportsByMonth = asyncHandler(async (req, res) => {
+  const reports = await groupedReportsByMonth();
+
+  const isEmpty = !reports || Object.keys(reports).length === 0;
+
+  if (isEmpty) {
+    return errorResponse(res, 'No reports found for any month', 404);
+  }
+
+  successResponse(res, reports, 200, 'reports retrieved successfully');
+});
+
+export const fetchAllRecentReports = asyncHandler(async (req, res) => {
+  const reports = await recentReports();
+  if (!reports) {
+    return errorResponse(res, 'No recent reports found', 404);
+  }
+  successResponse(res, reports, 200, 'eports retrieved successfully');
+});
+
+// monthly report

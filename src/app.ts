@@ -7,6 +7,8 @@ import userRouter from './routes/user';
 import crimeCategoryRouter from './routes/crimeCategories';
 import authRouter from './routes/auth';
 import reportRouter from './routes/report';
+import notificationRouter from './routes/notification';
+import Crimerouter from './routes/crime';
 
 const app = express();
 app.use(express.json());
@@ -18,6 +20,8 @@ app.use('/users', userRouter);
 app.use('/auth', authRouter);
 app.use('/categories', crimeCategoryRouter);
 app.use('/reports', reportRouter);
+app.use('/notifications', notificationRouter);
+app.use('/crimes', Crimerouter);
 
 app.use(errors());
 

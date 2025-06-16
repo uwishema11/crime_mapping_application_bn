@@ -1,5 +1,7 @@
 import { prisma } from '../db/prismaClient';
 import { Prisma } from '@prisma/client';
+import { format } from 'date-fns';
+
 import { ReportType } from '../types/report';
 import { ReportStatus } from '@prisma/client';
 
@@ -10,13 +12,77 @@ interface Params {
   per_page: number;
 }
 
-export const createReport = async (data: ReportType) => {
-  console.log(data);
-  return await prisma.report.create({
-    data: {
-      ...data,
-      incidentDate: new Date(data.incidentDate),
-    },
+// export const createReport = async (data: ReportType) => {
+//   console.log(data);
+//   return await prisma.report.create({
+//     data: {
+//       ...data,
+//       incidentDate: new Date(data.incidentDate),
+//     },
+//   });
+// };
+
+// src/services/report.ts
+
+export const createReportWithCrime = async (data: ReportType) => {
+  return await prisma.$transaction(async (tx) => {
+    const category = await tx.crimeCategory.findUnique({
+      where: { name: data.categoryName },
+      select: { id: true },
+    });
+
+    if (!category) {
+      throw new Error('Category not found');
+    }
+    const crime = await tx.crime.create({
+      data: {
+        crime_name: data.crimeName.toLocaleUpperCase(),
+        description: data.description,
+        categoryId: category.id,
+        createdBy: data.userId,
+        incidentDate: new Date(data.incidentDate),
+        location: data.location,
+      },
+    });
+    const report = await tx.report.create({
+      data: {
+        crimeName: data.crimeName,
+        description: data.description,
+        location: data.location,
+        incidentDate: new Date(data.incidentDate),
+        evidence: data.evidence,
+        contactNumber: data.contactNumber,
+        categoryName: data.categoryName,
+        userId: data.userId,
+        status: ReportStatus.PENDING,
+      },
+      include: {
+        category: true,
+        reporter: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    await tx.notification.create({
+      data: {
+        userId: data.userId,
+        reportId: report.id,
+        title: 'Report Submitted',
+        message: `Your report about ${data.crimeName} has been submitted successfully.`,
+        type: 'REPORT_SUBMITTED',
+      },
+    });
+
+    return {
+      report,
+      crime,
+    };
   });
 };
 
@@ -123,21 +189,24 @@ export const updateReportStatus = async (id: number, status: ReportStatus) => {
   });
 };
 
-export const checkReportOwnership = async (reportId: number, userId: number) => {
+export const checkReportOwnership = async (
+  reportId: number,
+  userId: number
+) => {
   const report = await prisma.report.findUnique({
     where: { id: reportId },
-    select: { userId: true }
+    select: { userId: true },
   });
   return report?.userId === userId;
 };
 
 export const updateReport = async (
-  id: number, 
-  data: Partial<ReportType>, 
+  id: number,
+  data: Partial<ReportType>,
   userId: number,
   isAdmin: boolean
 ) => {
-  const existingReport = await prisma.report.findUnique({ 
+  const existingReport = await prisma.report.findUnique({
     where: { id },
   });
 
@@ -168,8 +237,12 @@ export const updateReport = async (
   });
 };
 
-export const deleteReport = async (id: number, userId: number, isAdmin: boolean) => {
-  const existingReport = await prisma.report.findUnique({ 
+export const deleteReport = async (
+  id: number,
+  userId: number,
+  isAdmin: boolean
+) => {
+  const existingReport = await prisma.report.findUnique({
     where: { id },
   });
 
@@ -201,3 +274,74 @@ export const getReportsByCrime = async (crimeId: number) => {
     },
   });
 };
+
+export const groupReportsByLocation = async () => {
+  return await prisma.report.groupBy({
+    by: ['location'],
+    _count: { location: true },
+    orderBy: { _count: { location: 'desc' } },
+  });
+};
+
+export const groupReportsByStatus = async () => {
+  return await prisma.report.groupBy({
+    by: ['status'],
+    _count: { status: true },
+    orderBy: { _count: { status: 'desc' } },
+  });
+};
+
+export const groupReportsByAgeGroup = async () => {
+  const reports = await prisma.report.findMany({
+    include: {
+      reporter: {
+        select: { date_of_birth: true },
+      },
+    },
+  });
+  const getAge = (dob: Date | null) => {
+    if (!dob) return null;
+    const diff = Date.now() - dob.getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+  };
+
+  const ageGroups: { [key: string]: number } = {};
+  for (const report of reports) {
+    const age = getAge(report.reporter?.date_of_birth ?? null);
+    let group = 'Unknown';
+    if (age !== null) {
+      if (age < 18) group = 'Under 18';
+      else if (age < 30) group = '18-29';
+      else if (age < 45) group = '30-44';
+      else if (age < 60) group = '45-59';
+      else group = '60+';
+    }
+    ageGroups[group] = (ageGroups[group] || 0) + 1;
+  }
+  return ageGroups;
+};
+
+export async function groupedReportsByMonth() {
+  const reports = await prisma.report.findMany({
+    select: {
+      incidentDate: true,
+    },
+  });
+  const counts: Record<string, number> = {};
+
+  for (const report of reports) {
+    const month = format(report.incidentDate, 'MMMM');
+    counts[month] = (counts[month] || 0) + 1;
+  }
+
+  return counts;
+}
+
+export async function recentReports() {
+  return prisma.report.findMany({
+    orderBy: {
+      createdAt: 'desc',
+    },
+    take: 2,
+  });
+}

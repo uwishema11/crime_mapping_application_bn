@@ -1,4 +1,4 @@
-import { ReportStatus } from "@prisma/client";
+import { ReportStatus } from '@prisma/client';
 
 export interface ReportType {
   id: number;
@@ -10,6 +10,8 @@ export interface ReportType {
   incidentDate: Date;
   evidence?: string;
   contactNumber?: string;
+  status: ReportStatus;
+  assignedOfficerId?: number;
 }
 
 export interface ReportResponse extends ReportType {
