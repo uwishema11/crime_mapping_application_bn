@@ -19,7 +19,7 @@ export const generateAccessToken = async (user: tokenData) => {
     role: user.role,
   };
 
-  const options: SignOptions = { expiresIn: '15m' };
+  const options: SignOptions = { expiresIn: '7d' };
 
   return jwt.sign(payload, secret, options);
 };

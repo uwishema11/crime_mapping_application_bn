@@ -122,3 +122,27 @@ export const groupCrimesByCrimeName = async () => {
     orderBy: { _count: { crime_name: 'desc' } },
   });
 };
+
+// Get the most reported crime name
+export const getMostReportedCrime = async () => {
+  const result = await prisma.crime.groupBy({
+    by: ['crime_name'],
+    _count: { crime_name: true },
+    orderBy: { _count: { crime_name: 'desc' } },
+    take: 3,
+  });
+  return result
+};
+
+// Get the location with the highest number of crimes
+export const getLocationWithMostCrimes = async () => {
+  const result = await prisma.crime.groupBy({
+    by: ['location'],
+    _count: { location: true },
+    orderBy: { _count: { location: 'desc' } },
+    take: 1,
+  });
+  return result[0]
+    ? { location: result[0].location, count: result[0]._count.location }
+    : null;
+};

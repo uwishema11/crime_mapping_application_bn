@@ -12,6 +12,7 @@ import {
   groupedCrimesByMonthAndType,
   groupCrimesByLocation,
   groupCrimesByCrimeName,
+  getMostReportedCrime,
 } from '../services/crime';
 
 interface AuthenticatedRequest extends Request {
@@ -136,6 +137,7 @@ export const fetchGroupedCrimesByCrimeName = asyncHandler(async (req, res) => {
   if (!grouped || Object.keys(grouped).length === 0) {
     return errorResponse(res, 'No crimes found for any month', 404);
   }
+  console.log(grouped);
   const formatted = grouped.map((item) => ({
     crime_name: item.crime_name,
     count: item._count.crime_name,
@@ -163,5 +165,41 @@ export const fetchGroupedCrimesByLocation = asyncHandler(async (req, res) => {
     formatted,
     200,
     'Crimes grouped by location retrieved successfully'
+  );
+});
+
+export const fetchMostReportedCrime = asyncHandler(async (req, res) => {
+  console.log('fetching crime');
+  const mostReported = await getMostReportedCrime();
+  console.log(mostReported);
+  if (!mostReported) {
+    return errorResponse(res, 'No crimes found', 404);
+  }
+  const formatted = mostReported.map((item) => ({
+    crime_name: item.crime_name,
+    count: item._count.crime_name,
+  }));
+
+  successResponse(
+    res,
+    formatted,
+    200,
+    'Most reported crime retrieved successfully'
+  );
+});
+
+import { getLocationWithMostCrimes } from '../services/crime';
+
+export const fetchLocationWithMostCrimes = asyncHandler(async (req, res) => {
+  const topLocation = await getLocationWithMostCrimes();
+  if (!topLocation) {
+    return errorResponse(res, 'No locations found', 404);
+  }
+
+  successResponse(
+    res,
+    topLocation,
+    200,
+    'Location with most crimes retrieved successfully'
   );
 });

@@ -34,7 +34,8 @@ model Report {
   id              Int           @id @default(autoincrement())
   crimeName      String       
   description     String       
-  location        String       
+  location        String    
+  identityId       String?     
   incidentDate    DateTime  
   reportedAt      DateTime     @default(now()) 
   status          ReportStatus @default(PENDING)
@@ -42,7 +43,9 @@ model Report {
   contactNumber   String?      
   categoryName    String
   userId          Int
-  assignedTo      Int?         // ID of the officer assigned to this report
+  assignedTo      Int?   
+  latitude        Float?
+  longitude       Float?     // ID of the officer assigned to this report
   reporter        User         @relation(fields: [userId], references: [id])
   assignedOfficer User?        @relation("AssignedOfficer", fields: [assignedTo], references: [id])
   category        CrimeCategory @relation(fields: [categoryName], references: [name])
@@ -57,6 +60,8 @@ model CrimeCategory {
   description String 
   status      CrimeCategoryStatus @default(ACTIVE)
   category_author      String
+  latitude   String?
+  longitude  String?
   user        User     @relation(fields: [category_author], references: [email])                              
   createdAt   DateTime @default(now())             
   updatedAt   DateTime @updatedAt                  
@@ -71,7 +76,9 @@ model Crime {
   categoryId      Int 
   createdBy       Int 
   incidentDate    DateTime?
-  location        String?        
+  location        String?    
+  latitude   Float?
+  longitude  Float?    
   creator         User          @relation(fields: [createdBy], references: [id])                                     
   category        CrimeCategory @relation(fields: [categoryId], references: [id]) 
   createdAt       DateTime       @default(now())         
@@ -132,6 +139,5 @@ enum Role {
 
 enum Gender {
   MALE
-  FEMALE
   OTHER
 }

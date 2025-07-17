@@ -23,12 +23,7 @@ userRouter.post(
 );
 userRouter.delete('/delete/:id', protectedRoute, verifyAdmin, deleteUser);
 userRouter.post('/auth/login', login);
-// userRouter.post('/auth/verify/:token', verifyUser);
-userRouter.patch(
-  '/update/:id',
-  uploadImg,
-  updateUser
-);
+userRouter.patch('/update/:id', uploadImg, updateUser);
 
 // Update user role (admin only)
 userRouter.patch(
@@ -37,11 +32,13 @@ userRouter.patch(
   verifyAdmin,
   celebrate({
     params: Joi.object({
-      userId: Joi.number().required()
+      userId: Joi.number().required(),
     }),
     body: Joi.object({
-      role: Joi.string().valid('USER', 'OFFICER', 'ADMIN', 'SUPERADMIN').required()
-    })
+      role: Joi.string()
+        .valid('USER', 'OFFICER', 'ADMIN', 'SUPERADMIN')
+        .required(),
+    }),
   }),
   userController.updateUserRole
 );

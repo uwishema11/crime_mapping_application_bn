@@ -8,10 +8,13 @@ export interface ReportType {
   description: string;
   location: string;
   incidentDate: Date;
+  latitude: number;
+  longitude: number;
   evidence?: string;
   contactNumber?: string;
   status: ReportStatus;
   assignedOfficerId?: number;
+  identityId?: string;
 }
 
 export interface ReportResponse extends ReportType {

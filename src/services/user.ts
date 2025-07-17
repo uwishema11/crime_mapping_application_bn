@@ -1,5 +1,5 @@
 import { prisma } from '../db/prismaClient';
-import { Prisma, UserStatus,Role } from '@prisma/client';
+import { Prisma, UserStatus, Role } from '@prisma/client';
 
 import { userType } from '../types/user';
 
@@ -29,11 +29,9 @@ export const addUser = async (newUser: userType) => {
 };
 
 export const findUserByEmail = async (email: string) => {
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
-      email: {
-        equals: email.toLowerCase(),
-      },
+      email: email.toLowerCase(),
     },
   });
   return user;

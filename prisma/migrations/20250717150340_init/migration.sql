@@ -1,4 +1,7 @@
 -- CreateEnum
+CREATE TYPE "NotificationType" AS ENUM ('REPORT_SUBMITTED', 'REPORT_STATUS_CHANGED', 'REPORT_ASSIGNED', 'ADMIN_BROADCAST');
+
+-- CreateEnum
 CREATE TYPE "CrimeCategoryStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'BLOCKED');
 
 -- CreateEnum
@@ -8,10 +11,10 @@ CREATE TYPE "ReportStatus" AS ENUM ('PENDING', 'UNDER_REVIEW', 'INVESTIGATING', 
 CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'DISACTIVE', 'BLOCKED');
 
 -- CreateEnum
-CREATE TYPE "Role" AS ENUM ('USER', 'ADMIN', 'SUPERADMIN');
+CREATE TYPE "Role" AS ENUM ('USER', 'OFFICER', 'ADMIN', 'SUPERADMIN');
 
 -- CreateEnum
-CREATE TYPE "Gender" AS ENUM ('MALE', 'FEMALE', 'OTHER');
+CREATE TYPE "Gender" AS ENUM ('MALE', 'OTHER');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -39,6 +42,7 @@ CREATE TABLE "Report" (
     "crimeName" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "location" TEXT NOT NULL,
+    "identityId" TEXT,
     "incidentDate" TIMESTAMP(3) NOT NULL,
     "reportedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "status" "ReportStatus" NOT NULL DEFAULT 'PENDING',
@@ -46,6 +50,9 @@ CREATE TABLE "Report" (
     "contactNumber" TEXT,
     "categoryName" TEXT NOT NULL,
     "userId" INTEGER NOT NULL,
+    "assignedTo" INTEGER,
+    "latitude" DOUBLE PRECISION,
+    "longitude" DOUBLE PRECISION,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -59,6 +66,8 @@ CREATE TABLE "CrimeCategory" (
     "description" TEXT NOT NULL,
     "status" "CrimeCategoryStatus" NOT NULL DEFAULT 'ACTIVE',
     "category_author" TEXT NOT NULL,
+    "latitude" TEXT,
+    "longitude" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -72,10 +81,29 @@ CREATE TABLE "Crime" (
     "description" TEXT NOT NULL,
     "categoryId" INTEGER NOT NULL,
     "createdBy" INTEGER NOT NULL,
+    "incidentDate" TIMESTAMP(3),
+    "location" TEXT,
+    "latitude" DOUBLE PRECISION,
+    "longitude" DOUBLE PRECISION,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Crime_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Notification" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "reportId" INTEGER,
+    "title" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "type" "NotificationType" NOT NULL,
+    "read" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -87,8 +115,17 @@ CREATE INDEX "email_idx" ON "User"("email");
 -- CreateIndex
 CREATE UNIQUE INDEX "CrimeCategory_name_key" ON "CrimeCategory"("name");
 
+-- CreateIndex
+CREATE INDEX "Notification_userId_idx" ON "Notification"("userId");
+
+-- CreateIndex
+CREATE INDEX "Notification_reportId_idx" ON "Notification"("reportId");
+
 -- AddForeignKey
 ALTER TABLE "Report" ADD CONSTRAINT "Report_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Report" ADD CONSTRAINT "Report_assignedTo_fkey" FOREIGN KEY ("assignedTo") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Report" ADD CONSTRAINT "Report_categoryName_fkey" FOREIGN KEY ("categoryName") REFERENCES "CrimeCategory"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -101,3 +138,9 @@ ALTER TABLE "Crime" ADD CONSTRAINT "Crime_createdBy_fkey" FOREIGN KEY ("createdB
 
 -- AddForeignKey
 ALTER TABLE "Crime" ADD CONSTRAINT "Crime_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "CrimeCategory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_reportId_fkey" FOREIGN KEY ("reportId") REFERENCES "Report"("id") ON DELETE SET NULL ON UPDATE CASCADE;
