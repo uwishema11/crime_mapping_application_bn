@@ -1,21 +1,15 @@
 import bcrypt from 'bcrypt';
 import { Request } from 'express';
 
-import { sendVerificationEmail } from '../helpers/sendEmail';
-import sendEmailOnRegistration from '../helpers/emailTemplate';
 import {
   addUser,
   fetchAllUsers,
   findUserByEmail,
   findUserById,
   updateUserData,
-  updateVerifiedUser,
 } from '../services/user';
 import { userType } from '../types/user';
-import {
-  generateAccessToken,
-  verifyAccessToken,
-} from '../helpers/generateToken';
+import { generateAccessToken } from '../helpers/generateToken';
 import { successResponse, errorResponse } from '../helpers/response';
 import asyncHandler from '../helpers/asyncHandler';
 import { UserStatus } from '@prisma/client';
@@ -29,7 +23,7 @@ interface AuthenticatedRequest extends Request {
 }
 
 export const registerUser = asyncHandler(async (req, res) => {
-  const { password, confirm_password, email } = req.body;
+  const { password, email, confirm_password, ...rest } = req.body;
 
   const isUser = await findUserByEmail(email);
   if (isUser) {
@@ -44,61 +38,15 @@ export const registerUser = asyncHandler(async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, salt);
 
   const body: userType = {
-    ...req.body,
+    ...rest,
+    email,
     password: hashedPassword,
   };
-
-  const token = await generateAccessToken(body);
-  const verificationLink = `${process.env.BASE_URL}/auth/verify/${token}`;
-  await sendVerificationEmail(
-    body.email,
-    sendEmailOnRegistration(req.body.firstName, verificationLink)
-  );
 
   const newUser = await addUser(body);
   const { password: _, ...userData } = newUser;
 
-  successResponse(
-    res,
-    userData,
-    201,
-    'User registered successfully. Please check your email to verify your account.'
-  );
-});
-
-export const verifyUser = asyncHandler(async (req, res) => {
-  const { token } = req.params;
-  if (!token) {
-    return errorResponse(res, 'Invalid link! Please try again', 401);
-  }
-
-  const user = verifyAccessToken(token);
-
-  const payload = user.data as userType;
-  if (!payload) {
-    return errorResponse(
-      res,
-      'Verification failed. Please try again later or contact the admin',
-      401
-    );
-  }
-
-  if (!user.success) {
-    return errorResponse(
-      res,
-      'Verification failed. Please try again later or contact the admin',
-      401
-    );
-  }
-
-  const email = payload.email;
-
-  const isUserVerified = await findUserByEmail(email);
-  if (isUserVerified?.isVerified) {
-    return errorResponse(res, 'User already verified!', 400);
-  }
-  await updateVerifiedUser(email);
-  successResponse(res, user, 200, 'User verified successfully!');
+  successResponse(res, userData, 201, 'User registered successfully.');
 });
 
 export const login = asyncHandler(async (req, res) => {
@@ -114,13 +62,6 @@ export const login = asyncHandler(async (req, res) => {
       res,
       'User not found! Please register to proceed',
       404
-    );
-  }
-  if (!user.isVerified) {
-    return errorResponse(
-      res,
-      'User not verified! Please verify your account to proceed',
-      401
     );
   }
 
@@ -158,7 +99,7 @@ export const logout = asyncHandler(async (req, res) => {
 export const fetchUsers = asyncHandler(async (req, res) => {
   const body = {
     page: parseInt(req.query.page as string) || 1,
-    limit: parseInt(req.query.limit as string) || 10,
+    limit: parseInt(req.query.limit as string) || 50,
     filter: req.query.filter as UserStatus,
     search: (req.query.search as string) || '',
   };
@@ -199,18 +140,10 @@ export const updateUser = asyncHandler(async (req, res) => {
       401
     );
   }
-  if (user.isVerified === 'FALSE') {
-    return errorResponse(
-      res,
-      'User not verified! Please verify the account first to proceed',
-      401
-    );
-  }
   const data = {
     ...req.body,
     image_url,
   };
-  console.log(data);
 
   const updatedUser = await updateUserData(Number(id), data);
   successResponse(res, updatedUser, 200, 'User updated successfully');

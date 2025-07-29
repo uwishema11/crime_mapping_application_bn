@@ -10,19 +10,22 @@
     "prettier": "prettier --check .",
     "dev": "nodemon src/index.ts",
     "start": "node dist/index.js",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "merge:prisma": "node scripts/merge_schema.ts",
+    "prisma:generate": "npm run merge:prisma && prisma generate",
+    "prisma:migrate": "npm run merge:prisma && prisma migrate dev"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@prisma/client": "^6.5.0",
     "bcrypt": "^5.1.1",
     "celebrate": "^15.0.3",
     "cloudinary": "^2.6.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
     "express": "^5.1.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
@@ -37,6 +40,7 @@
     "typeorm": "^0.3.22"
   },
   "devDependencies": {
+    "@prisma/client": "^6.9.0",
     "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
@@ -46,7 +50,7 @@
     "@types/multer": "^1.4.12",
     "@types/node": "^22.14.0",
     "@types/nodemailer": "^6.4.17",
-    "prisma": "^6.5.0",
+    "prisma": "^6.9.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2"

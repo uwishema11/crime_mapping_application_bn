@@ -15,6 +15,7 @@ const crimeCategoryRouter = express.Router();
 crimeCategoryRouter.post(
   '/create',
   celebrate({ body: crimeCategoryValidation }),
+  protectedRoute,
   createCrimeCategoryController
 );
 crimeCategoryRouter.get(
@@ -23,14 +24,14 @@ crimeCategoryRouter.get(
   getAllCrimeCategoriesController
 );
 crimeCategoryRouter.get('/', getAllCrimeCategoriesController);
-crimeCategoryRouter.put(
-  '/:id',
+crimeCategoryRouter.patch(
+  '/edit/:id',
   protectedRoute,
   verifyAdmin,
   updateCrimeCategoryController
 );
 crimeCategoryRouter.delete(
-  '/:id',
+  '/delete/:id',
   protectedRoute,
   verifyAdmin,
   deleteCrimeCategoryController

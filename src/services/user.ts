@@ -1,7 +1,7 @@
 import { prisma } from '../db/prismaClient';
-import { Prisma, Role, VerificationStatus } from '@prisma/client';
+import { Prisma, UserStatus, Role } from '@prisma/client';
+
 import { userType } from '../types/user';
-import { UserStatus } from '@prisma/client';
 
 interface userParams {
   filter: UserStatus;
@@ -11,11 +11,18 @@ interface userParams {
 }
 
 export const addUser = async (newUser: userType) => {
-  const { confirm_password, ...userData } = newUser;
+  // const userData: userType = {
+  //   ...newUser,
+  //   email: newUser.email.toLowerCase(),
+  //   status: UserStatus.ACTIVE, // Default status
+  //   created_at: new Date(),
+  //   updated_at: new Date(),
+  // };
 
   const registeredUser = await prisma.user.create({
     data: {
-      ...userData,
+      ...newUser,
+      // email: userData.email.toLowerCase(),
     },
   });
   return registeredUser;
@@ -24,21 +31,10 @@ export const addUser = async (newUser: userType) => {
 export const findUserByEmail = async (email: string) => {
   const user = await prisma.user.findUnique({
     where: {
-      email,
+      email: email.toLowerCase(),
     },
   });
   return user;
-};
-
-export const updateVerifiedUser = async (email: string) => {
-  return await prisma.user.update({
-    where: { email },
-    data: {
-      isVerified: VerificationStatus.VERIFIED,
-      status: UserStatus.ACTIVE,
-      updated_at: new Date(),
-    },
-  });
 };
 
 export const fetchAllUsers = async (user: userParams) => {
@@ -51,19 +47,19 @@ export const fetchAllUsers = async (user: userParams) => {
           OR: [
             {
               firstName: {
-                contains: search.toLowerCase(),
+                contains: search,
                 mode: Prisma.QueryMode.insensitive,
               },
             },
             {
               lastName: {
-                contains: search.toLowerCase(),
+                contains: search,
                 mode: Prisma.QueryMode.insensitive,
               },
             },
             {
               email: {
-                contains: search.toLowerCase(),
+                contains: search,
                 mode: Prisma.QueryMode.insensitive,
               },
             },
@@ -83,7 +79,6 @@ export const fetchAllUsers = async (user: userParams) => {
       image_url: true,
       email: true,
       role: true,
-      isVerified: true,
       status: true,
     },
     where: whereClouse,
@@ -136,5 +131,11 @@ export const updateUserData = async (id: number, data: Partial<userType>) => {
       ...data,
       updated_at: new Date(),
     },
+  });
+};
+
+export const deleteUserService = async (id: number) => {
+  return await prisma.user.delete({
+    where: { id },
   });
 };
