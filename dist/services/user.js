@@ -8,26 +8,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateUserData = exports.updateUserRole = exports.findUserById = exports.fetchAllUsers = exports.updateVerifiedUser = exports.findUserByEmail = exports.addUser = void 0;
+exports.deleteUserService = exports.updateUserData = exports.updateUserRole = exports.findUserById = exports.fetchAllUsers = exports.findUserByEmail = exports.addUser = void 0;
 const prismaClient_1 = require("../db/prismaClient");
 const client_1 = require("@prisma/client");
-const client_2 = require("@prisma/client");
 const addUser = (newUser) => __awaiter(void 0, void 0, void 0, function* () {
-    const { confirm_password } = newUser, userData = __rest(newUser, ["confirm_password"]);
+    // const userData: userType = {
+    //   ...newUser,
+    //   email: newUser.email.toLowerCase(),
+    //   status: UserStatus.ACTIVE, // Default status
+    //   created_at: new Date(),
+    //   updated_at: new Date(),
+    // };
     const registeredUser = yield prismaClient_1.prisma.user.create({
-        data: Object.assign({}, userData),
+        data: Object.assign({}, newUser),
     });
     return registeredUser;
 });
@@ -35,23 +29,12 @@ exports.addUser = addUser;
 const findUserByEmail = (email) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield prismaClient_1.prisma.user.findUnique({
         where: {
-            email,
+            email: email.toLowerCase(),
         },
     });
     return user;
 });
 exports.findUserByEmail = findUserByEmail;
-const updateVerifiedUser = (email) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield prismaClient_1.prisma.user.update({
-        where: { email },
-        data: {
-            isVerified: client_1.VerificationStatus.VERIFIED,
-            status: client_2.UserStatus.ACTIVE,
-            updated_at: new Date(),
-        },
-    });
-});
-exports.updateVerifiedUser = updateVerifiedUser;
 const fetchAllUsers = (user) => __awaiter(void 0, void 0, void 0, function* () {
     const { filter, search, page, limit } = user;
     const whereClouse = Object.assign(Object.assign({}, (filter ? { status: filter } : {})), (search
@@ -59,19 +42,19 @@ const fetchAllUsers = (user) => __awaiter(void 0, void 0, void 0, function* () {
             OR: [
                 {
                     firstName: {
-                        contains: search.toLowerCase(),
+                        contains: search,
                         mode: client_1.Prisma.QueryMode.insensitive,
                     },
                 },
                 {
                     lastName: {
-                        contains: search.toLowerCase(),
+                        contains: search,
                         mode: client_1.Prisma.QueryMode.insensitive,
                     },
                 },
                 {
                     email: {
-                        contains: search.toLowerCase(),
+                        contains: search,
                         mode: client_1.Prisma.QueryMode.insensitive,
                     },
                 },
@@ -88,7 +71,6 @@ const fetchAllUsers = (user) => __awaiter(void 0, void 0, void 0, function* () {
             image_url: true,
             email: true,
             role: true,
-            isVerified: true,
             status: true,
         },
         where: whereClouse,
@@ -139,3 +121,9 @@ const updateUserData = (id, data) => __awaiter(void 0, void 0, void 0, function*
     });
 });
 exports.updateUserData = updateUserData;
+const deleteUserService = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield prismaClient_1.prisma.user.delete({
+        where: { id },
+    });
+});
+exports.deleteUserService = deleteUserService;

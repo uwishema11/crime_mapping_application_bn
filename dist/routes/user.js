@@ -10,12 +10,30 @@ const verifyAuth_1 = __importDefault(require("../middleware/verifyAuth"));
 const verifyAdmin_1 = __importDefault(require("../middleware/verifyAdmin"));
 const user_1 = require("../controllers/user");
 const user_2 = require("../validation/user");
+const userController_1 = __importDefault(require("../controllers/userController"));
 const userRouter = express_1.default.Router();
-userRouter.post('/auth/verify/:token', user_1.verifyUser);
-userRouter.get('/', verifyAuth_1.default, verifyAdmin_1.default, user_1.fetchUsers);
+userRouter.get('/', verifyAuth_1.default, user_1.fetchUsers);
 userRouter.post('/auth/register', storage_1.uploadImg, (0, celebrate_1.celebrate)({ body: user_2.userSchema }), user_1.registerUser);
 userRouter.delete('/delete/:id', verifyAuth_1.default, verifyAdmin_1.default, user_1.deleteUser);
 userRouter.post('/auth/login', user_1.login);
-userRouter.post('/auth/verify/:token', user_1.verifyUser);
 userRouter.patch('/update/:id', storage_1.uploadImg, user_1.updateUser);
+// Update user role (admin only)
+userRouter.patch('/:userId/role', verifyAuth_1.default, verifyAdmin_1.default, (0, celebrate_1.celebrate)({
+    params: celebrate_1.Joi.object({
+        userId: celebrate_1.Joi.number().required(),
+    }),
+    body: celebrate_1.Joi.object({
+        role: celebrate_1.Joi.string()
+            .valid('USER', 'OFFICER', 'ADMIN', 'SUPERADMIN')
+            .required(),
+    }),
+}), userController_1.default.updateUserRole);
+// Get all officers (admin only)
+userRouter.get('/officers', verifyAuth_1.default, verifyAdmin_1.default, userController_1.default.getOfficers);
+// Get assigned reports (officer only)
+// userRouter.get(
+//   '/assigned-reports',
+//   protectedRoute,
+//   userController.getAssignedReports
+// );
 exports.default = userRouter;

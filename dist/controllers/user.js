@@ -23,50 +23,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.updateUser = exports.getUserById = exports.fetchUsers = exports.logout = exports.login = exports.verifyUser = exports.registerUser = void 0;
+exports.deleteUser = exports.updateUser = exports.getUserById = exports.fetchUsers = exports.logout = exports.login = exports.registerUser = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const sendEmail_1 = require("../helpers/sendEmail");
-const emailTemplate_1 = __importDefault(require("../helpers/emailTemplate"));
 const user_1 = require("../services/user");
 const generateToken_1 = require("../helpers/generateToken");
 const response_1 = require("../helpers/response");
 const asyncHandler_1 = __importDefault(require("../helpers/asyncHandler"));
 exports.registerUser = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { password, confirm_password, email } = req.body;
+    const _a = req.body, { password, email, confirm_password } = _a, rest = __rest(_a, ["password", "email", "confirm_password"]);
     const isUser = yield (0, user_1.findUserByEmail)(email);
     if (isUser) {
         return (0, response_1.errorResponse)(res, 'User with the provided email already exists! Please try using different email', 400);
     }
     const salt = yield bcrypt_1.default.genSalt(10);
     const hashedPassword = yield bcrypt_1.default.hash(password, salt);
-    const body = Object.assign(Object.assign({}, req.body), { password: hashedPassword });
-    const token = yield (0, generateToken_1.generateAccessToken)(body);
-    const verificationLink = `${process.env.BASE_URL}/auth/verify/${token}`;
-    yield (0, sendEmail_1.sendVerificationEmail)(body.email, (0, emailTemplate_1.default)(req.body.firstName, verificationLink));
+    const body = Object.assign(Object.assign({}, rest), { email, password: hashedPassword });
     const newUser = yield (0, user_1.addUser)(body);
     const { password: _ } = newUser, userData = __rest(newUser, ["password"]);
-    (0, response_1.successResponse)(res, userData, 201, 'User registered successfully. Please check your email to verify your account.');
-}));
-exports.verifyUser = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { token } = req.params;
-    if (!token) {
-        return (0, response_1.errorResponse)(res, 'Invalid link! Please try again', 401);
-    }
-    const user = (0, generateToken_1.verifyAccessToken)(token);
-    const payload = user.data;
-    if (!payload) {
-        return (0, response_1.errorResponse)(res, 'Verification failed. Please try again later or contact the admin', 401);
-    }
-    if (!user.success) {
-        return (0, response_1.errorResponse)(res, 'Verification failed. Please try again later or contact the admin', 401);
-    }
-    const email = payload.email;
-    const isUserVerified = yield (0, user_1.findUserByEmail)(email);
-    if (isUserVerified === null || isUserVerified === void 0 ? void 0 : isUserVerified.isVerified) {
-        return (0, response_1.errorResponse)(res, 'User already verified!', 400);
-    }
-    yield (0, user_1.updateVerifiedUser)(email);
-    (0, response_1.successResponse)(res, user, 200, 'User verified successfully!');
+    (0, response_1.successResponse)(res, userData, 201, 'User registered successfully.');
 }));
 exports.login = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = req.body;
@@ -76,9 +50,6 @@ exports.login = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void
     const user = yield (0, user_1.findUserByEmail)(email);
     if (!user) {
         return (0, response_1.errorResponse)(res, 'User not found! Please register to proceed', 404);
-    }
-    if (!user.isVerified) {
-        return (0, response_1.errorResponse)(res, 'User not verified! Please verify your account to proceed', 401);
     }
     const matchedPassword = yield bcrypt_1.default.compare(password, user.password);
     if (!matchedPassword) {
@@ -102,7 +73,7 @@ exports.logout = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, voi
 exports.fetchUsers = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const body = {
         page: parseInt(req.query.page) || 1,
-        limit: parseInt(req.query.limit) || 10,
+        limit: parseInt(req.query.limit) || 50,
         filter: req.query.filter,
         search: req.query.search || '',
     };
@@ -133,11 +104,7 @@ exports.updateUser = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0,
     if (user.status === 'DISACTIVE') {
         return (0, response_1.errorResponse)(res, 'User account is inactive! Please contact the admin to reactivate your account', 401);
     }
-    if (user.isVerified === 'FALSE') {
-        return (0, response_1.errorResponse)(res, 'User not verified! Please verify the account first to proceed', 401);
-    }
     const data = Object.assign(Object.assign({}, req.body), { image_url });
-    console.log(data);
     const updatedUser = yield (0, user_1.updateUserData)(Number(id), data);
     (0, response_1.successResponse)(res, updatedUser, 200, 'User updated successfully');
 }));

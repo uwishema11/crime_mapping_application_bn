@@ -1,0 +1,28 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const verifyAuth_1 = __importDefault(require("../middleware/verifyAuth"));
+const verifyAdmin_1 = __importDefault(require("../middleware/verifyAdmin"));
+const report_1 = require("../controllers/report");
+const report_2 = require("../controllers/report");
+const router = express_1.default.Router();
+router.post('/create', verifyAuth_1.default, report_2.createReportController);
+router.get('/all', report_2.getAllReportsController);
+router.patch('/edit/:id', verifyAuth_1.default, report_2.updateReportController);
+router.get('/single-user/my-reports', verifyAuth_1.default, report_2.getUserReportsController);
+router.get('/get/:id', verifyAuth_1.default, report_2.getReportByIdController);
+router.patch('/update/status/:id', verifyAuth_1.default, verifyAdmin_1.default, report_2.updateReportStatusController);
+router.get('/recents', verifyAuth_1.default, verifyAdmin_1.default, report_2.fetchAllRecentReports);
+router.get('/grouped/monthly', verifyAuth_1.default, verifyAdmin_1.default, report_2.fetchGroupedReportsByMonth);
+router.get('/grouped/status', verifyAuth_1.default, verifyAdmin_1.default, report_2.fetctchGroupReportsByStatus);
+router.get('/grouped/pending-status', report_2.fetchPendingReportsByStatus);
+router.delete('/delete/:id', verifyAuth_1.default, report_2.deleteReportController);
+router.get('/grouped/category', verifyAuth_1.default, report_2.fetchGroupedReportsByCategory);
+router.get('/user/stats', verifyAuth_1.default, report_2.fetchGroupedUserReportsByCategory);
+router.get('/user/monthly', verifyAuth_1.default, report_2.fetchGroupedUserReportsByMonth);
+router.get('/location/top-crime', report_2.fetchTopCrimePerLocation);
+router.get('/prediction', verifyAuth_1.default, verifyAdmin_1.default, report_1.fetchPrediction);
+exports.default = router;
