@@ -16,25 +16,39 @@ exports.sendVerificationEmail = void 0;
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const sendVerificationEmail = (email, template) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log('Creating transporter with:', {
+            service: 'gmail',
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASSWORD,
+        });
         const transporter = nodemailer_1.default.createTransport({
-            host: 'sandbox.smtp.mailtrap.io',
-            port: 587,
+            service: 'gmail',
             auth: {
-                user: process.env.MAILTRAP_USER,
-                pass: process.env.MAILTRAP_PASS,
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASSWORD,
             },
         });
+        yield transporter.verify();
+        console.log('Transporter verified successfully');
         const mailOptions = {
-            from: `UC E-commerce Team<${process.env.USER_EMAIL}>`,
+            from: `Crime Mapping Team<${process.env.EMAIL_USER}>`,
             to: email,
             subject: 'Verify Your Account',
             html: template,
         };
-        yield transporter.sendMail(mailOptions);
+        console.log('Sending email to:', email);
+        const info = yield transporter.sendMail(mailOptions);
+        console.log('Email sent successfully:', info.response);
+        return info;
     }
     catch (error) {
-        console.error('Email sending error:', error);
-        throw new Error('Failed to send verification email');
+        console.error('Detailed email sending error:', {
+            message: error.message,
+            code: error.code,
+            command: error.command,
+            stack: error.stack,
+        });
+        throw new Error(`Failed to send verification email: ${error.message}`);
     }
 });
 exports.sendVerificationEmail = sendVerificationEmail;

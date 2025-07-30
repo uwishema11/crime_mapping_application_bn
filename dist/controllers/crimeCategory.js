@@ -17,10 +17,10 @@ const asyncHandler_1 = __importDefault(require("../helpers/asyncHandler"));
 const response_1 = require("../helpers/response");
 const crimeCategory_1 = require("../services/crimeCategory");
 exports.createCrimeCategoryController = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
-    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
-    const category_author = (_b = req.user) === null || _b === void 0 ? void 0 : _b.email;
-    const category = Object.assign(Object.assign({}, req.body), { userId: userId, category_author: category_author });
+    var _a;
+    const category_author = (_a = req.user) === null || _a === void 0 ? void 0 : _a.email;
+    const category = Object.assign(Object.assign({}, req.body), { category_author: category_author });
+    console.log(category);
     const newCategory = yield (0, crimeCategory_1.createCrimeCategory)(category);
     (0, response_1.successResponse)(res, newCategory, 201, 'Crime category created successfully');
 }));
@@ -37,16 +37,11 @@ exports.getAllCrimeCategoriesController = (0, asyncHandler_1.default)((req, res)
 exports.updateCrimeCategoryController = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     const category = yield (0, crimeCategory_1.updateCrimeCategory)(Number(id), req.body);
+    console.log(category);
     if (!category) {
-        res.status(404).json({
-            message: 'Crime category not found',
-        });
-        return;
+        return (0, response_1.errorResponse)(res, 'Crime category not found', 404);
     }
-    res.status(200).json({
-        message: 'Crime category updated successfully',
-        data: category,
-    });
+    return (0, response_1.successResponse)(res, category, 200, 'Crime category updated successfully');
 }));
 exports.deleteCrimeCategoryController = (0, asyncHandler_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
